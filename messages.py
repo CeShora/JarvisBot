@@ -22,7 +22,7 @@ ke in rasm faghat tuye daneshgahe AUT hast, ya laaghal injas
 ke vaghean jedi gerefte mishe. Pedar/Madar khodetun ro age 
 mikhain beshnaCn mn behetun komak khahad kard. """
 
-tashakolat_message = """Aut ye serie tashakol👥 dare ke darvaghe ye guruh az bachehaye 
+tashakolat_message = """AUT ye serie tashakol👥 dare ke darvaghe ye guruh az bachehaye 
 khode daneshgah hastan ke (ba tavajoh be tashakoleshun) ye tedadi 
 az service haro erae midan be bachehaye dige.
 1)✨Shoraye senfi✨: Ehtemalan in tashakol ziba :)) ro ghabl az baghie 
