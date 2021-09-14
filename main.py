@@ -1,25 +1,47 @@
+
+import logging
 import os
-import telebot
-from dotenv import load_dotenv
 
-import Responses as res
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-load_dotenv()
+from messages import * 
+
+
 API_KEY = os.getenv('API_KEY')
-bot = telebot.TeleBot(API_KEY)
+
+# for logging in the host server, just in case ;) 
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+def start(update, context):
+    """when student uses command /start """
+    global start_message
+    update.message.reply_text(start_message)
+
+def error(update, context):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    text = res.welcome
-    bot.reply_to(message, text)
+def main():
+    global API_KEY
+    updater = Updater(API_KEY, use_context=True)
+
+    dp = updater.dispatcher
+
+    dp.add_handler(CommandHandler("start", start))
+
+    dp.add_handler(MessageHandler(Filters.text, echo))
+
+    # for loging all errors when ocurred 
+    dp.add_error_handler(error)
+
+    # to start the Bot
+    updater.start_polling()
+    updater.idle()
 
 
-@bot.message_handler(func=lambda message: True)
-def echo_all(message):
-    text = res.echo_all
-    bot.reply_to(message, text)
-
-
-if __name__ == "__main__":
-    bot.polling()
+if __name__ == '__main__':
+    main()
