@@ -83,10 +83,12 @@ def setService(update, context):
         logger.info("taraf service Yatim paziri ro entekhab karde va ma message ro display karDm, alan bayad barat option biad")
         global parenthood_message
         update.message.reply_text(parenthood_message, reply_markup=ReplyKeyboardRemove())
-        options = [['❇sarparast mikham❇', 'Nah!']]
+        # options = [['sarparast mikham', 'Nah!']]
+        options = [['talash dobare?', 'hamine agha, berim']]
         update.message.reply_text("khob hala begu bebinam mikhai sarparast dashte bashi? ", ReplyKeyboardMarkup(
-            options, one_time_keyboard=True, input_field_placeholder='list of service'
+            options, one_time_keyboard=True, input_field_placeholder='lst service'
         ))
+        logger.warning("moshkel inja 2")
         return WAIT_PARENTHOOD
     else: 
         logger.info("taraf service alaki entekhab karde dobare service haro behesh neshun midam")
