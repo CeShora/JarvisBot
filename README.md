@@ -21,7 +21,7 @@ pipenv run python .\main.py
 
 ```
 
-bot features:
+bot features/services:
 1) vasl shodan be pedar madar
 
 2) ashnaE ba tashakolat
