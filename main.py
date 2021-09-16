@@ -30,7 +30,7 @@ def start(update, context):
     global start_message
     update.message.reply_text(start_message)
     nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
-    update.message.reply_text(nextStep)
+    update.message.reply_text(nextStep, reply_markup=ReplyKeyboardRemove())
     return GET_ID
 
 def setID(update, context):
@@ -83,9 +83,8 @@ def setService(update, context):
         logger.info("taraf service Yatim paziri ro entekhab karde va ma message ro display karDm, alan bayad barat option biad")
         global parenthood_message
         update.message.reply_text(parenthood_message, reply_markup=ReplyKeyboardRemove())
-        # options = [['sarparast mikham', 'Nah!']]
-        options = [['talash dobare?', 'hamine agha, berim']]
-        update.message.reply_text("khob hala begu bebinam mikhai sarparast dashte bashi? ", ReplyKeyboardMarkup(
+        options = [['❇sarparast mikham❇', 'Nah!']]
+        update.message.reply_text("khob hala begu bebinam mikhai sarparast dashte bashi? ", reply_markup = ReplyKeyboardMarkup(
             options, one_time_keyboard=True, input_field_placeholder='lst service'
         ))
         logger.warning("moshkel inja 2")
@@ -138,8 +137,12 @@ def noSkipNameValidation(update, context):
 
 def skipParenthood(update, context):
     update.message.reply_text("inghadr madar pedaret ro hers nade", reply_markup=ReplyKeyboardRemove())
-    # return SERVICE_LIST
-    return None
+    serviceIntro = """ hala service digeE mikhai?"""
+    services = [['Yatim paziri']]
+    update.message.reply_text(serviceIntro, reply_markup = ReplyKeyboardMarkup(
+            services, one_time_keyboard=True, input_field_placeholder='list of service'
+        ))
+    return GET_SERVICE
 
 
 def error(update, context):
