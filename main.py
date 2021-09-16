@@ -28,6 +28,8 @@ GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD = range(5)
 
 def start(update, context):
     global start_message
+    start_file = open("start.gif", 'rb')
+    update.message.reply_document(start_file)
     update.message.reply_text(start_message)
     nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
     update.message.reply_text(nextStep, reply_markup=ReplyKeyboardRemove())
