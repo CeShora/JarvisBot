@@ -28,7 +28,7 @@ GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD = range(5)
 
 def start(update, context):
     global start_message
-    update.message.reply_document("AAMCBAADGQEAAQy9mWFDpzZih2YLeJm-so1QbVihYP7kAAKFCgACiMMhUq-kO0CliG_QAQAHbQADIAQ")
+    update.message.reply_animation("CgACAgQAAxkBAAEMvcRhQ6y6nyCz9qlkBzkSrqLvTUp99AACiQoAAojDIVIkxtgu-Eo1FyAE")
     update.message.reply_text(start_message)
     nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
     update.message.reply_text(nextStep, reply_markup=ReplyKeyboardRemove())
@@ -68,6 +68,7 @@ def nameValidation(update, context):
     elif validation == 'hamine agha, berim':
         serviceIntro = """ service hayi ke mn be to {} aziz erae midam inas. Age barat jaleb bud, yekishun ro entekhab kon ta darbarash behet begam :)""".format("ESM_TO") 
         services = [['Yatim paziri']]
+        update.message.reply_animation("CgACAgQAAxkBAAEMvdlhQ674oP3wjjEImmtLOuqH9ckWsgACjQoAAojDIVI3luv3G05T0SAE")
         update.message.reply_text(serviceIntro, reply_markup = ReplyKeyboardMarkup(
                 services, one_time_keyboard=True, input_field_placeholder='list of service'
             ))
