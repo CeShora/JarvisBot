@@ -13,6 +13,8 @@ from telegram.ext import (
     CallbackContext,
 )
 
+import redis #to store the data
+import json
 from messages import * 
 
 
@@ -26,9 +28,21 @@ logger = logging.getLogger(__name__)
 
 GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD = range(5)
 
+r = redis.Redis(host='localhost', port=6379, db=0)
+saveInfo  = {}
+
 def start(update, context):
+    #set up data about user
+    saveInfo ["userId"] = update.message.from_user.id
+    saveInfo["username"]= update.message.from_user.username
+
+    #now save data in redis database
+    jsonDump = json.dumps(saveInfo)
+    r.set(saveInfo["userId"], jsonDump)
+    r.save()
+
     global start_message
-    update.message.reply_animation("CgACAgQAAxkBAAEMvcRhQ6y6nyCz9qlkBzkSrqLvTUp99AACiQoAAojDIVIkxtgu-Eo1FyAE")
+    update.message.reply_animation("CgACAgQAAxkBAAEMvcRhQ6y6nyCz9qlkBzkSrqLvTUp99AACiQoAAojDIVIkxtgu-Eo1FyAE") #sending the start.gif 
     update.message.reply_text(start_message)
     nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
     update.message.reply_text(nextStep, reply_markup=ReplyKeyboardRemove())
@@ -38,6 +52,13 @@ def setID(update, context):
     # now we have the id, we must get the user's name
     studentId = update.message.text
     user = update.message.from_user
+    saveInfo["studentID"]= studentId
+    
+    #save in redis db
+    jsonDump = json.dumps(saveInfo)
+    r.set(saveInfo["userId"], jsonDump)
+    r.save()
+
     logger.info("studentID of %s: %s", user.first_name, update.message.text)
     getName = "Lotfan esm va familit ro vared kon"
     update.message.reply_text(getName)
@@ -50,6 +71,13 @@ def incorrectID(update, context):
 def nameSet(update, context):
     name = update.message.text
     user = update.message.from_user
+    saveInfo["fullName"] = name
+
+    #save in redis db
+    jsonDump = json.dumps(saveInfo)
+    r.set(saveInfo["userId"], jsonDump)
+    r.save()
+
     logger.info("name of %s: %s", user.first_name, name)
     validation = "Aya in esm va familit hast?   "+str(name)
     reply_keyboard = [['talash dobare?', 'hamine agha, berim']]
@@ -103,6 +131,13 @@ def getParenthoodService(update, context):
     parenthood = update.message.text
     logger.warning("just for you to know im in getParenthoodService task")
     if parenthood=="❇sarparast mikham❇":
+        saveInfo["parentHood"] = True
+
+        #save in redis db
+        jsonDump = json.dumps(saveInfo)
+        r.set(saveInfo["userId"], jsonDump)
+        r.save()
+
         update.message.reply_text("hale, be {} khabar midam ke biad be sarparasti ghabulet kone".format("STUDENT_ID_PARENT"), reply_markup=ReplyKeyboardRemove())
         nextService = "Dige che serviceE mikhai?"
         services = [['Yatim paziri']]
@@ -111,6 +146,13 @@ def getParenthoodService(update, context):
             ))
         return GET_SERVICE
     elif parenthood == "Nah!":
+        saveInfo["parentHood"] = False
+        
+        #save in redis db
+        jsonDump = json.dumps(saveInfo)
+        r.set(saveInfo["userId"], jsonDump)
+        r.save()
+
         update.message.reply_text("eh chera? \nKhob ok harjur rahat tari, be {} khabar midam ke donbal ye bache dige bashe".format("STUDENT_ID_PARENT"), reply_markup=ReplyKeyboardRemove())
         nextService = "Dige che serviceE mikhai?"
         services = [['Yatim paziri']]
