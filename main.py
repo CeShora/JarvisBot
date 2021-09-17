@@ -51,12 +51,9 @@ def loadInfoFromRedis(userId):
     return saveInfo
 
 def start(update, context):
-    logger.info("started1" + str(update.message.from_user.username))
 
     #set up data about user
     saveInfoToRedis(str(update.message.from_user.id), str(update.message.chat_id), "username", str(update.message.from_user.username))
-
-    logger.info("started2" + str(update.message.from_user.username))
 
     global start_message
     update.message.reply_animation("CgACAgQAAxkBAAEMwmJhRH6My8SAhIuq5Jm6zDydoOKBXgACZAoAAojDKVI6bouBtlVi0SAE", caption=start_message) #sending the start.gif 
