@@ -182,7 +182,6 @@ def noSkipNameValidation(update, context):
     update.message.reply_text("laelahaelalah, agha ya esmet hast ya nist, in koli bazia dige chie?")
     return NAME_VALIDATION
 
-
 def skipParenthood(update, context):
     update.message.reply_text("inghadr madar pedaret ro hers nade", reply_markup=ReplyKeyboardRemove())
     serviceIntro = """ hala service digeE mikhai?"""
