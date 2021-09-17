@@ -29,17 +29,34 @@ logger = logging.getLogger(__name__)
 GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD = range(5)
 
 r = redis.Redis(host='localhost', port=6379, db=0)
-saveInfo  = {}
 
-def start(update, context):
-    #set up data about user
-    saveInfo ["userId"] = update.message.from_user.id
-    saveInfo["username"]= update.message.from_user.username
 
+def saveInfoToRedis(userId, chatId, keyString, valueString):
+    saveInfo = None
+    if r.get(userId)==None:
+        saveInfo  = {}
+        saveInfo["userId"] = userId
+        saveInfo["chatId"] = chatId
+        saveInfo[keyString] = valueString
+    else:
+        saveInfo = loadInfoFromRedis(userId)
+        saveInfo[keyString]= valueString
     #now save data in redis database
     jsonDump = json.dumps(saveInfo)
-    r.set(saveInfo["userId"], jsonDump)
+    r.set(userId, jsonDump)
     r.save()
+
+def loadInfoFromRedis(userId):
+    saveInfo = json.loads(r.get(userId))
+    return saveInfo
+
+def start(update, context):
+    logger.info("started1" + str(update.message.from_user.username))
+
+    #set up data about user
+    saveInfoToRedis(str(update.message.from_user.id), str(update.message.chat_id), "username", str(update.message.from_user.username))
+
+    logger.info("started2" + str(update.message.from_user.username))
 
     global start_message
     update.message.reply_animation("CgACAgQAAxkBAAEMwmJhRH6My8SAhIuq5Jm6zDydoOKBXgACZAoAAojDKVI6bouBtlVi0SAE", caption=start_message) #sending the start.gif 
@@ -48,15 +65,10 @@ def start(update, context):
     return GET_ID
 
 def setID(update, context):
-    # now we have the id, we must get the user's name
+
     studentId = update.message.text
     user = update.message.from_user
-    saveInfo["studentID"]= studentId
-    
-    #save in redis db
-    jsonDump = json.dumps(saveInfo)
-    r.set(saveInfo["userId"], jsonDump)
-    r.save()
+    saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "studentID", studentId)
 
     logger.info("studentID of %s: %s", user.first_name, update.message.text)
     getName = "Lotfan esm va familit ro vared kon"
@@ -70,12 +82,8 @@ def incorrectID(update, context):
 def nameSet(update, context):
     name = update.message.text
     user = update.message.from_user
-    saveInfo["fullName"] = name
-
-    #save in redis db
-    jsonDump = json.dumps(saveInfo)
-    r.set(saveInfo["userId"], jsonDump)
-    r.save()
+    
+    saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "fullName", name)
 
     logger.info("name of %s: %s", user.first_name, name)
     validation = "Aya in esm va familit hast?   "+str(name)
@@ -93,7 +101,7 @@ def nameValidation(update, context):
         update.message.reply_text(getName, reply_markup=ReplyKeyboardRemove())
         return GET_NAME
     elif validation == 'hamine agha, berim':
-        serviceIntro = """ service hayi ke mn be to {} aziz erae midam inas. Age barat jaleb bud, yekishun ro entekhab kon ta darbarash behet begam :)""".format(saveInfo["fullName"]) 
+        serviceIntro = """ service hayi ke mn erae midam inas. Age barat jaleb bud, yekishun ro entekhab kon ta darbarash behet begam :)"""
         services = [['Yatim paziri'],['Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
         update.message.reply_animation("CgACAgQAAxkBAAEMwmlhRH7fmq0UArijPx3gm30lrs-gsQACZQoAAojDKVKFb6w1HzVDDiAE", caption = serviceIntro, reply_markup = ReplyKeyboardMarkup(services))
         
@@ -137,14 +145,10 @@ def setService(update, context):
 
 def getParenthoodService(update, context):
     parenthood = update.message.text
-    logger.warning("just for you to know im in getParenthoodService task")
     if parenthood=="❇sarparast mikham❇":
-        saveInfo["parentHood"] = True
-
+        
         #save in redis db
-        jsonDump = json.dumps(saveInfo)
-        r.set(saveInfo["userId"], jsonDump)
-        r.save()
+        saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "parentHood", True)
 
         update.message.reply_text("hale, be {} khabar midam ke biad be sarparasti ghabulet kone".format("STUDENT_ID_PARENT"), reply_markup=ReplyKeyboardRemove())
         nextService = "Dige che serviceE mikhai?"
@@ -154,12 +158,9 @@ def getParenthoodService(update, context):
             ))
         return GET_SERVICE
     elif parenthood == "Nah!":
-        saveInfo["parentHood"] = False
         
         #save in redis db
-        jsonDump = json.dumps(saveInfo)
-        r.set(saveInfo["userId"], jsonDump)
-        r.save()
+        saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "parentHood", False)
 
         update.message.reply_text("eh chera? \nKhob ok harjur rahat tari, be {} khabar midam ke donbal ye bache dige bashe".format("STUDENT_ID_PARENT"), reply_markup=ReplyKeyboardRemove())
         nextService = "Dige che serviceE mikhai?"
