@@ -42,7 +42,7 @@ def start(update, context):
     r.save()
 
     global start_message
-    update.message.reply_animation("CgACAgQAAxkBAAEMvcRhQ6y6nyCz9qlkBzkSrqLvTUp99AACiQoAAojDIVIkxtgu-Eo1FyAE") #sending the start.gif 
+    update.message.reply_animation("CgACAgQAAxkBAAEMwmJhRH6My8SAhIuq5Jm6zDydoOKBXgACZAoAAojDKVI6bouBtlVi0SAE") #sending the start.gif 
     update.message.reply_text(start_message)
     nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
     update.message.reply_text(nextStep, reply_markup=ReplyKeyboardRemove())
@@ -95,8 +95,9 @@ def nameValidation(update, context):
         return GET_NAME
     elif validation == 'hamine agha, berim':
         serviceIntro = """ service hayi ke mn be to {} aziz erae midam inas. Age barat jaleb bud, yekishun ro entekhab kon ta darbarash behet begam :)""".format("ESM_TO") 
-        services = [['Yatim paziri']]
-        update.message.reply_animation("CgACAgQAAxkBAAEMvdlhQ674oP3wjjEImmtLOuqH9ckWsgACjQoAAojDIVI3luv3G05T0SAE")
+        services = [['Yatim paziri', 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+        # loadingPhoto = open("loading.gif", 'rb')
+        update.message.reply_animation("AAMCBAADGQEAAQzCaWFEft-arRQCuKM_HeCbfSWuz6CxAAJlCgACiMMpUoVvrDUfNUMOAQAHbQADIAQ")
         update.message.reply_text(serviceIntro, reply_markup = ReplyKeyboardMarkup(
                 services, one_time_keyboard=True, input_field_placeholder='list of service'
             ))
@@ -119,9 +120,26 @@ def setService(update, context):
         ))
         logger.warning("moshkel inja 2")
         return WAIT_PARENTHOOD
+    elif service == 'Tashakol haye AUT va CE':
+        global tashakolat_message
+        update.message.reply_text(tashakolat_message, reply_markup=ReplyKeyboardRemove())
+        services = [['Yatim paziri', 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+        update.message.reply_text("servica ha:", reply_markup = ReplyKeyboardMarkup(
+            services, one_time_keyboard=True, input_field_placeholder='list of services'
+        ))
+        return GET_SERVICE
+    elif service == 'site haye AUT va CE':
+        global sites_message
+        update.message.reply_text(sites_message, reply_markup=ReplyKeyboardRemove())
+        services = [['Yatim paziri', 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+        update.message.reply_text("servica ha:", reply_markup = ReplyKeyboardMarkup(
+            services, one_time_keyboard=True, input_field_placeholder='list of services'
+        ))
+        return GET_SERVICE
+
     else: 
         logger.info("taraf service alaki entekhab karde dobare service haro behesh neshun midam")
-        services = [['Yatim paziri']]
+        services = [['Yatim paziri', 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
         update.message.reply_text("Emmm... nadashtim hamchin serviceE ha🤔🤔, yebar dige entekhab kon", reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of service'
         ))
@@ -140,7 +158,7 @@ def getParenthoodService(update, context):
 
         update.message.reply_text("hale, be {} khabar midam ke biad be sarparasti ghabulet kone".format("STUDENT_ID_PARENT"), reply_markup=ReplyKeyboardRemove())
         nextService = "Dige che serviceE mikhai?"
-        services = [['Yatim paziri']]
+        services = [['Yatim paziri', 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
         update.message.reply_text(nextService, reply_markup = ReplyKeyboardMarkup(
                 services, one_time_keyboard=True, input_field_placeholder='list of service'
             ))
@@ -155,7 +173,7 @@ def getParenthoodService(update, context):
 
         update.message.reply_text("eh chera? \nKhob ok harjur rahat tari, be {} khabar midam ke donbal ye bache dige bashe".format("STUDENT_ID_PARENT"), reply_markup=ReplyKeyboardRemove())
         nextService = "Dige che serviceE mikhai?"
-        services = [['Yatim paziri']]
+        services = [['Yatim paziri' 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
         update.message.reply_text(nextService, reply_markup = ReplyKeyboardMarkup(
                 services, one_time_keyboard=True, input_field_placeholder='list of service'
             ))
@@ -182,7 +200,7 @@ def noSkipNameValidation(update, context):
 def skipParenthood(update, context):
     update.message.reply_text("inghadr madar pedaret ro hers nade", reply_markup=ReplyKeyboardRemove())
     serviceIntro = """ hala service digeE mikhai?"""
-    services = [['Yatim paziri']]
+    services = [['Yatim paziri', 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
     update.message.reply_text(serviceIntro, reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of service'
         ))
