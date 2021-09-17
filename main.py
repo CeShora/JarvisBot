@@ -107,6 +107,12 @@ def nameValidation(update, context):
         update.message.reply_text(getName, reply_markup=ReplyKeyboardRemove())
         return GET_NAME
     elif validation == 'hamine agha, berim':
+
+        ########################### NOTIFY ADMIN ###########################
+        global ADMIN_CHAT_ID
+        notifyAdmin(ADMIN_CHAT_ID, r, context)
+        ############################### DONE ###############################
+        
         serviceIntro = """ service hayi ke mn erae midam inas. Age barat jaleb bud, yekishun ro entekhab kon ta darbarash behet begam :)"""
         services = [['Yatim paziri'],['Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
         update.message.reply_animation("CgACAgQAAxkBAAEMwmlhRH7fmq0UArijPx3gm30lrs-gsQACZQoAAojDKVKFb6w1HzVDDiAE", caption = serviceIntro, reply_markup = ReplyKeyboardMarkup(services))
