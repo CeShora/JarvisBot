@@ -1,4 +1,4 @@
-## THE COMMIT HISTORY IS "YOU LAUGH YOU LOSE" MATERIAL
+#### [THE COMMIT HISTORY IS "YOU LAUGH YOU LOSE" MATERIAL](https://github.com/CeitShora/JarvisBot/commits/master)
 
 
 if you wanna run the app:
