@@ -33,3 +33,17 @@ def getData(update, context):
 def imDumb(update, context):
     update.message.reply_text("sorry admin, im dumb😞, i cant understand you :(")
     return None
+
+
+
+
+
+##########################################################################
+# this one will just notify admin when there is a change in the database #
+##########################################################################
+def notifyAdmin(admin_id, redisInstance, context):
+    a = ""
+    for key in r.keys():
+        a = str(key)+"  "+str( r.get(key))+"\n"
+    context.bot.send_message(chat_id=admin_id, text=a) 
+    return 
