@@ -1,3 +1,6 @@
+## PLEASE DO NOT CHECK THE COMMIT HISTORY IF YOU ARE ON A FUNERAL
+
+
 if you wanna run the app:
 
 step1:
@@ -33,3 +36,8 @@ bot features/services:
 5) option finglish ya parC ra pass bedarim:)
 
 6) moshkelatet ro be mn begu
+
+
+
+
+
