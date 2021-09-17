@@ -107,7 +107,6 @@ def nameValidation(update, context):
         update.message.reply_text("emmm, yeki az gozine haro lotfan entekhab kon")
         return NAME_VALIDATION
 
-
 def setService(update, context):
     service = update.message.text
     if service == 'Yatim paziri':
@@ -121,7 +120,8 @@ def setService(update, context):
     elif service == 'Tashakol haye AUT va CE':
         global tashakolat_message
         services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
-        update.message.reply_text(tashakolat_message, reply_markup = ReplyKeyboardMarkup(
+        tashakolat_photo = open("gp.gif",'rb')
+        update.message.reply_animation("CgACAgQAAxkBAAEMxSFhRPzRyInp5HdLxcOeP-pi4blrDgACHAsAAojDKVIrFauqcxMCaCAE", caption=tashakolat_message, reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of services'
         ))
         return GET_SERVICE
@@ -169,8 +169,6 @@ def getParenthoodService(update, context):
     else:
         update.message.reply_text("agha mn ke nafahmidam chi migi, az gozine ha yekio entekhab kon ya /skip bezan")
         return WAIT_PARENTHOOD
-
-    
 
 def noSkipGetId(update, context):
     update.message.reply_text("laelahaelalah, sare karie? ")
