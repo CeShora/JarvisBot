@@ -16,9 +16,10 @@ from telegram.ext import (
 import redis #to store the data
 import json
 from messages import * 
-
+from adminUtils import *
 
 API_KEY = os.getenv('API_KEY')
+ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
 
 # for logging in the host server, just in case ;) 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -26,7 +27,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD = range(5)
+GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD = range(6)
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -52,7 +53,14 @@ def loadInfoFromRedis(userId):
 
 def start(update, context):
 
-    #set up data about user
+    # if its admin, then just take her(yes its gonna be me) to the "god" stage, lol, yes im a narcisist
+    global ADMIN_CHAT_ID
+    if str(update.message.chat_id) == ADMIN_CHAT_ID:
+        update.message.reply_text("Hi admin👋")
+        logger.info("admin is talking to me :)")
+        return GOD
+
+    # set up data about user
     saveInfoToRedis(str(update.message.from_user.id), str(update.message.chat_id), "username", str(update.message.from_user.username))
 
     global start_message
@@ -60,6 +68,7 @@ def start(update, context):
     nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
     update.message.reply_text(nextStep, reply_markup=ReplyKeyboardRemove())
     return GET_ID
+
 
 def setID(update, context):
 
@@ -229,6 +238,7 @@ def main():
             ],
             GET_SERVICE:[MessageHandler(Filters.text & ~Filters.command, setService),  CommandHandler("skip", skipService), CommandHandler("start", start), MessageHandler(Filters.command, idk_command) ],
             WAIT_PARENTHOOD:[ MessageHandler( Filters.text & ~Filters.command, getParenthoodService) , CommandHandler('skip', skipParenthood), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
+            GOD:[CommandHandler("data", admin), MessageHandler(Filters.regex('^40031.{3}'), getData), MessageHandler(Filters.all, imDumb)]
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )
