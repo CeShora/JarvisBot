@@ -9,11 +9,16 @@ def admin(update, context):
     
     # write the data collected into a file and send it to the admin 
     for key in r.keys():
-        a = str(key)+"  "+str( r.get(key))
-        f.write(a)
+        a = a + str(key)+"  "+str(r.get(key))+"\n"
+
+    f.write(a)
     f.flush()
     f.close()
+    print("Done saving file")
+    print(a)
+    print()
     update.message.reply_document(name, caption= "the data collected until now\n"+str(datetime.datetime.now()))
+    update.message.replu_text(a)
     return None
 
 def getData(update, context):
