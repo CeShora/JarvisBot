@@ -15,8 +15,10 @@ from telegram.ext import (
 
 import redis #to store the data
 import json
+import re
 from messages import * 
 from adminUtils import *
+
 
 API_KEY = os.getenv('API_KEY')
 ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
@@ -27,7 +29,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD = range(6)
+GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD, GET_CHILD, GET_CHILD_NOT_PARENT, HALE= range(9)
+
+FRESHMAN, SOPHOMORE, JUNIOR, SENIOR, NONE = range(5)
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -52,11 +56,30 @@ def loadInfoFromRedis(userId):
     return saveInfo
 
 def start(update, context):
-
+    # file = open("gifs/stork_baby.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/jarvis.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/gp.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/jarvis2.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/loading.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/site.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/site2.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/site3.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/site4.gif", "rb")
+    # update.message.reply_animation(file)
+    # file = open("gifs/start.gif", "rb")
+    # update.message.reply_animation(file)
     # if its admin, then just take her(yes its gonna be me) to the "god" stage, lol, yes im a narcisist
     global ADMIN_CHAT_ID
     if str(update.message.chat_id) == ADMIN_CHAT_ID:
-        update.message.reply_text("Hi admin👋")
+        update.message.reply_text("Hi admin👋", reply_markup=ReplyKeyboardRemove())
         logger.info("admin is talking to me :)")
         return GOD
 
@@ -64,14 +87,12 @@ def start(update, context):
     saveInfoToRedis(str(update.message.from_user.id), str(update.message.chat_id), "username", str(update.message.from_user.username))
 
     global start_message
-    update.message.reply_animation("CgACAgQAAxkBAAEMwmJhRH6My8SAhIuq5Jm6zDydoOKBXgACZAoAAojDKVI6bouBtlVi0SAE", caption=start_message) #sending the start.gif 
+    update.message.reply_animation("CgACAgQAAxkBAAEM6ddhTD7uP4tsRiWKaVaw6dmLopTblQACrQwAAmxWYVJ9UMrHXsSt9yEE", caption=start_message) #sending the start.gif 
     nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
     update.message.reply_text(nextStep, reply_markup=ReplyKeyboardRemove())
     return GET_ID
 
-
 def setID(update, context):
-
     studentId = update.message.text
     user = update.message.from_user
     saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "studentID", studentId)
@@ -80,6 +101,7 @@ def setID(update, context):
     getName = "Lotfan esm va familit ro vared kon"
     update.message.reply_text(getName)
     return GET_NAME
+    
     
 def incorrectID(update, context):
     update.message.reply_text("baba dorost hesabi shomare daneshjuEto bezan dige, laelahaelalah")
@@ -99,28 +121,115 @@ def nameSet(update, context):
         ))
     return NAME_VALIDATION
 
+def studentState(userId):
+    userData = loadInfoFromRedis(userId)
+    try:
+        studentId = userData["studentID"]
+    except KeyError:
+        return NONE
+    if re.search("(^40031.{3}$)", studentId):
+        return FRESHMAN
+    elif re.search("(^9931.{3}$)", studentId):
+        return SOPHOMORE
+    elif re.search("(^9831.{3}$)", studentId):
+        return JUNIOR
+    elif re.search("(^9731.{3}$)", studentId):
+        return SENIOR
+    else:
+        return NONE
+
 
 def nameValidation(update, context):
     validation = update.message.text
-    if validation == 'talash dobare?':
-        getName = "pas Lotfan esm va familit ro vared kon"
-        update.message.reply_text(getName, reply_markup=ReplyKeyboardRemove())
-        return GET_NAME
-    elif validation == 'hamine agha, berim':
+    studentState_ = studentState(update.message.from_user.id)
+    if studentState_ == NONE:
+        start_ = start()
+        return start_
+    elif studentState_ == FRESHMAN:
+        if validation == 'talash dobare?':
+            getName = "pas Lotfan esm va familit ro vared kon"
+            update.message.reply_text(getName, reply_markup=ReplyKeyboardRemove())
+            return GET_NAME
+        elif validation == 'hamine agha, berim':
 
-        ########################### NOTIFY ADMIN ###########################
-        global ADMIN_CHAT_ID
-        notifyAdmin(ADMIN_CHAT_ID, r, context)
-        ############################### DONE ###############################
-        
-        serviceIntro = """ service hayi ke mn erae midam inas. Age barat jaleb bud, yekishun ro entekhab kon ta darbarash behet begam :)"""
-        services = [['Yatim paziri'],['Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
-        update.message.reply_animation("CgACAgQAAxkBAAEMwmlhRH7fmq0UArijPx3gm30lrs-gsQACZQoAAojDKVKFb6w1HzVDDiAE", caption = serviceIntro, reply_markup = ReplyKeyboardMarkup(services))
-        
-        return GET_SERVICE
+            ########################### NOTIFY ADMIN ###########################
+            global ADMIN_CHAT_ID
+            notifyAdmin(ADMIN_CHAT_ID, r, context)
+            ############################### DONE ###############################
+            
+            serviceIntro = """ service hayi ke mn erae midam inas. Age barat jaleb bud, yekishun ro entekhab kon ta darbarash behet begam :)"""
+            services = [['Yatim paziri'],['Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+            update.message.reply_animation("CgACAgQAAxkBAAEM6fthTEDkB3_D6pNLofIygH7TfqD-jwACqAwAAmxWYVJY0KkLyzDA5CEE", #loading gif
+             caption = serviceIntro, reply_markup = ReplyKeyboardMarkup(services))
+            
+            return GET_SERVICE
+        else:
+            update.message.reply_text("emmm, yeki az gozine haro lotfan entekhab kon")
+            return NAME_VALIDATION
+    elif studentState_ == SOPHOMORE:
+        options = [['Re, lets go!', 'Nop']]
+        # stork = open("gifs/stork_baby.gif", 'rb')
+        update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
+        update.message.reply_text("bah bah, umadi bache tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
+            options, one_time_keyboard=True, input_field_placeholder='lst service'
+        ))
+        return GET_CHILD
+    elif studentState_ == JUNIOR  :
+        # stork = open("gifs/stork_baby.gif", 'rb')
+        update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
+        options = [['Re, lets go!', 'Nop']]
+        update.message.reply_text("bah bah, umadi nave tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
+            options, one_time_keyboard=True, input_field_placeholder='lst child'
+        ))
+        return GET_CHILD_NOT_PARENT
+    elif studentState_ == SENIOR  :
+        # stork = open("gifs/stork_baby.gif", 'rb')
+        update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
+        options = [['Re, lets go!', 'Nop']]
+        update.message.reply_text("bah bah, umadi nabire tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
+            options, one_time_keyboard=True, input_field_placeholder='lst child'
+        ))
+        return GET_CHILD_NOT_PARENT
+
+
+def getChildNotParent(update, context):
+    child = update.message.text
+    if child =='Re, lets go!':
+        saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "WantsChild", True)
+        update.message.reply_text("hale, behesh khabar midim age madar pedar nadasht biad pish to", reply_markup = ReplyKeyboardRemove())
+    elif child == 'Nop':
+        saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "WantsChild", True)
+        update.message.reply_text("ishala ke bachat masuliat pazire", reply_markup = ReplyKeyboardRemove())
     else:
-        update.message.reply_text("emmm, yeki az gozine haro lotfan entekhab kon")
-        return NAME_VALIDATION
+        update.message.reply_text("durugh chera nafahmidam chi gofT, dobare vared kon", reply_markup = ReplyKeyboardRemove())
+        options = [['Re, lets go!', 'Nop']]
+        update.message.reply_text("bah bah, umadi nabire tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
+            options, one_time_keyboard=True, input_field_placeholder='lst child'
+        ))
+        return GET_CHILD_NOT_PARENT
+    return HALE
+
+
+def getChild(update, context):
+    child = update.message.text
+    if child =='Re, lets go!':
+        saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "WantsChild", True)
+        update.message.reply_text("hale, behesh khabar midim ke biad dar aghush khanevade", reply_markup = ReplyKeyboardRemove())
+    elif child == 'Nop':
+        saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "WantsChild", True)
+        update.message.reply_text("hale, behesh khabar midim bere ye sarparast peida kone", reply_markup = ReplyKeyboardRemove())
+    else:
+        update.message.reply_text("durugh chera nafahmidam chi gofT, dobare vared kon", reply_markup = ReplyKeyboardRemove())
+        options = [['Re, lets go!', 'Nop']]
+        update.message.reply_text("bah bah, umadi bache tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
+            options, one_time_keyboard=True, input_field_placeholder='lst service'
+        ))
+        return GET_CHILD
+    return HALE
+
+def hale(update, context):
+    update.message.reply_text("hale dige, hamahagi haye lazem ro mikonam va age khabari bud behet midam")
+    return None
 
 def setService(update, context):
     service = update.message.text
@@ -135,15 +244,15 @@ def setService(update, context):
     elif service == 'Tashakol haye AUT va CE':
         global tashakolat_message
         services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
-        tashakolat_photo = open("gp.gif",'rb')
-        update.message.reply_animation("CgACAgQAAxkBAAEMxSFhRPzRyInp5HdLxcOeP-pi4blrDgACHAsAAojDKVIrFauqcxMCaCAE", caption=tashakolat_message, reply_markup = ReplyKeyboardMarkup(
+        update.message.reply_animation("CgACAgQAAxkBAAEM6glhTEGXueA6zdL910ZLEO7tAlxtUAACpgwAAmxWYVJp-BJS4aRtjyEE", #gp.gif
+         caption=tashakolat_message, reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of services'
         ))
         return GET_SERVICE
     elif service == 'site haye AUT va CE':
         global sites_message
         services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
-        update.message.reply_animation("CgACAgQAAxkBAAEMwolhRIGd-LbyhG7VvahERfpct1NTOgACaQoAAojDKVICmTmOCfDM-yAE", caption=sites_message, reply_markup = ReplyKeyboardMarkup(
+        update.message.reply_animation("CgACAgQAAxkBAAEM6g1hTEHTW1IEYRvheVszhp3Eyy_3IwACrAwAAmxWYVJH4AtOkexidyEE", caption=sites_message, reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of services'
         ))
         return GET_SERVICE
@@ -237,14 +346,17 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            GET_ID: [MessageHandler(Filters.regex('^40031.{3}'), setID), CommandHandler('skip', noSkipGetId), MessageHandler(Filters.text & ~Filters.command, incorrectID),  CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
+            GET_ID: [MessageHandler(Filters.regex('^40031.{3}'), setID), MessageHandler(Filters.regex('^9931.{3}'), setID), MessageHandler(Filters.regex('^9831.{3}'), setID) , MessageHandler(Filters.regex('^9731.{3}'), setID), CommandHandler('skip', noSkipGetId), MessageHandler(Filters.text & ~Filters.command, incorrectID),  CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
             GET_NAME: [MessageHandler(Filters.text & ~Filters.command, nameSet), CommandHandler('skip', noSkipGetName), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
             NAME_VALIDATION: [
                 MessageHandler(Filters.text & ~Filters.command, nameValidation ), CommandHandler('skip', noSkipNameValidation), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)
             ],
             GET_SERVICE:[MessageHandler(Filters.text & ~Filters.command, setService),  CommandHandler("skip", skipService), CommandHandler("start", start), MessageHandler(Filters.command, idk_command) ],
             WAIT_PARENTHOOD:[ MessageHandler( Filters.text & ~Filters.command, getParenthoodService) , CommandHandler('skip', skipParenthood), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
-            GOD:[CommandHandler("data", admin), MessageHandler(Filters.regex('^40031.{3}'), getData), MessageHandler(Filters.all, imDumb)]
+            GOD: [CommandHandler("data", admin), MessageHandler(Filters.regex('^40031.{3}'), getData),MessageHandler(Filters.regex('^9931.{3}'), getData), MessageHandler(Filters.regex('^9831.{3}'), getData),MessageHandler(Filters.regex('^9731.{3}'), getData), MessageHandler(Filters.all, imDumb)],
+            GET_CHILD: [ MessageHandler( Filters.text & ~Filters.command, getChild), CommandHandler("start", start)],
+            HALE:[MessageHandler(Filters.all & ~Filters.command, hale), CommandHandler("start", start)],
+            GET_CHILD_NOT_PARENT:[MessageHandler(Filters.all & ~Filters.command, getChildNotParent), CommandHandler("start", start)]
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )
