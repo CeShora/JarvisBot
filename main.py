@@ -29,7 +29,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD, GET_CHILD, GET_CHILD_NOT_PARENT, HALE= range(9)
+LANG, GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD, GET_CHILD, GET_CHILD_NOT_PARENT, HALE= range(10)
 
 FRESHMAN, SOPHOMORE, JUNIOR, SENIOR, NONE = range(5)
 
@@ -54,6 +54,7 @@ def saveInfoToRedis(userId, chatId, keyString, valueString):
 def loadInfoFromRedis(userId):
     saveInfo = json.loads(r.get(userId))
     return saveInfo
+
 
 def start(update, context):
     # file = open("gifs/stork_baby.gif", "rb")
