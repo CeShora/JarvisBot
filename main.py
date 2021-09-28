@@ -13,12 +13,12 @@ from telegram.ext import (
     CallbackContext,
 )
 
-import redis #to store the data
 import json
 import re
 from messages import * 
 from adminUtils import *
-
+from auth import *
+from langUtils import *
 
 API_KEY = os.getenv('API_KEY')
 ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
@@ -29,9 +29,10 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-LANG, GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD, GET_CHILD, GET_CHILD_NOT_PARENT, HALE= range(10)
+LANG,  GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD, GET_CHILD, GET_CHILD_NOT_PARENT, HALE= range(10)
 
-FRESHMAN, SOPHOMORE, JUNIOR, SENIOR, NONE = range(5)
+
+FRESHMAN, SOPHOMORE, JUNIOR, SENIOR, IDK = range(5)
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -57,26 +58,28 @@ def loadInfoFromRedis(userId):
 
 
 def start(update, context):
-    # file = open("gifs/stork_baby.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/jarvis.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/gp.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/jarvis2.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/loading.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/site.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/site2.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/site3.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/site4.gif", "rb")
-    # update.message.reply_animation(file)
-    # file = open("gifs/start.gif", "rb")
-    # update.message.reply_animation(file)
+    """
+    file = open("gifs/stork_baby.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/jarvis.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/gp.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/jarvis2.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/loading.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/site.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/site2.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/site3.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/site4.gif", "rb")
+    update.message.reply_animation(file)
+    file = open("gifs/start.gif", "rb")
+    update.message.reply_animation(file)
+    """
     # if its admin, then just take her(yes its gonna be me) to the "god" stage, lol, yes im a narcisist
     global ADMIN_CHAT_ID
     if str(update.message.chat_id) == ADMIN_CHAT_ID:
@@ -86,10 +89,35 @@ def start(update, context):
 
     # set up data about user
     saveInfoToRedis(str(update.message.from_user.id), str(update.message.chat_id), "username", str(update.message.from_user.username))
+    update.message.reply_text("پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
+            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        ))
+    return LANG
 
-    global start_message
+
+def setLang(update, context):
+    lang = update.message.text
+    
+    start_message = '' 
+    nextStep = ''
+
+    if lang == 'فارسی را پاس بداریم':
+        saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "lang", "fa")
+        update.message.reply_text("حله", reply_markup=ReplyKeyboardRemove())
+        start_message = start_message_FA
+        nextStep = "حالا برای شروع شماره دانشجوییت رو وارد کن"
+    elif lang == 'Finglish':
+        saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "lang", "laelahaelalah")
+        update.message.reply_text("bah bah, hale\nbezan berim", reply_markup=ReplyKeyboardRemove())
+        start_message = start_message_LAELAHAELALAH
+        nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
+    else:
+        update.message.reply_text("من که نفهمیدم، بالاخره چی شد؟ پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
+            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        ))
+        return LANG
+    #TODO in bayad bere baraye vurudia faghat
     update.message.reply_animation("CgACAgQAAxkBAAEM6ddhTD7uP4tsRiWKaVaw6dmLopTblQACrQwAAmxWYVJ9UMrHXsSt9yEE", caption=start_message) #sending the start.gif 
-    nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
     update.message.reply_text(nextStep, reply_markup=ReplyKeyboardRemove())
     return GET_ID
 
@@ -99,13 +127,37 @@ def setID(update, context):
     saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "studentID", studentId)
 
     logger.info("studentID of %s: %s", user.first_name, update.message.text)
-    getName = "Lotfan esm va familit ro vared kon"
+
+
+    lang = getStyle(update.message.from_user.id)
+    getName = ''
+    if lang == None:
+        update.message.reply_text("من که نفهمیدم، بالاخره چی شد؟ پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
+            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        ))
+        return LANG
+    elif lang == FA:
+        getName = "لطفا اسم و فامیلیت رو وارد کن"
+    elif lang == LAELAHAELALAH:
+        getName = "Lotfan esm va familit ro vared kon"
+
     update.message.reply_text(getName)
     return GET_NAME
     
     
 def incorrectID(update, context):
-    update.message.reply_text("baba dorost hesabi shomare daneshjuEto bezan dige, laelahaelalah")
+    lang = getStyle(update.message.from_user.id)
+    correctInput = ''
+    if lang == None:
+        update.message.reply_text("من که نفهمیدم، بالاخره چی شد؟ پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
+            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        ))
+        return LANG
+    elif lang == FA:
+        correctInput = "لطفا  شماره دانشجوایت رو وارد کن"
+    elif lang == LAELAHAELALAH:
+        correctInput = "baba dorost hesabi shomare daneshjuEto bezan dige, laelahaelalah"
+    update.message.reply_text(correctInput)
     return GET_ID
 
 def nameSet(update, context):
@@ -113,10 +165,24 @@ def nameSet(update, context):
     user = update.message.from_user
     
     saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "fullName", name)
-
     logger.info("name of %s: %s", user.first_name, name)
-    validation = "Aya in esm va familit hast?   "+str(name)
+
+    lang = getStyle(update.message.from_user.id)
+    validation = ''
     reply_keyboard = [['talash dobare?', 'hamine agha, berim']]
+    if lang == None:
+        update.message.reply_text("من که نفهمیدم، بالاخره چی شد؟ پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
+            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        ))
+        return LANG
+    elif lang == FA:
+        validation = "آیا اسم و فامیلیت همینه؟"+str(name)
+        reply_keyboard = [['تلاش دوباره', 'درست']]
+    elif lang == LAELAHAELALAH:
+        validation = "Aya in esm va familit hast?   "+str(name)
+        reply_keyboard = [['talash dobare?', 'hamine agha, berim']]
+
+    
     update.message.reply_text(validation, reply_markup = ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True, input_field_placeholder='name validation?'
         ))
@@ -127,7 +193,7 @@ def studentState(userId):
     try:
         studentId = userData["studentID"]
     except KeyError:
-        return NONE
+        return IDK
     if re.search("(^40031.{3}$)", studentId):
         return FRESHMAN
     elif re.search("(^9931.{3}$)", studentId):
@@ -137,13 +203,13 @@ def studentState(userId):
     elif re.search("(^9731.{3}$)", studentId):
         return SENIOR
     else:
-        return NONE
+        return IDK
 
 
 def nameValidation(update, context):
     validation = update.message.text
     studentState_ = studentState(update.message.from_user.id)
-    if studentState_ == NONE:
+    if studentState_ == IDK:
         start_ = start()
         return start_
     elif studentState_ == FRESHMAN:
@@ -168,9 +234,10 @@ def nameValidation(update, context):
             update.message.reply_text("emmm, yeki az gozine haro lotfan entekhab kon")
             return NAME_VALIDATION
     elif studentState_ == SOPHOMORE:
-        options = [['Re, lets go!', 'Nop']]
+        options = getOptions
         # stork = open("gifs/stork_baby.gif", 'rb')
         update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
+        grandChildText = getGrandChildText()
         update.message.reply_text("bah bah, umadi bache tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
             options, one_time_keyboard=True, input_field_placeholder='lst service'
         ))
@@ -347,6 +414,7 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
+            LANG: [MessageHandler( Filters.text & ~Filters.command , setLang)],
             GET_ID: [MessageHandler(Filters.regex('^40031.{3}'), setID), MessageHandler(Filters.regex('^9931.{3}'), setID), MessageHandler(Filters.regex('^9831.{3}'), setID) , MessageHandler(Filters.regex('^9731.{3}'), setID), CommandHandler('skip', noSkipGetId), MessageHandler(Filters.text & ~Filters.command, incorrectID),  CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
             GET_NAME: [MessageHandler(Filters.text & ~Filters.command, nameSet), CommandHandler('skip', noSkipGetName), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
             NAME_VALIDATION: [
