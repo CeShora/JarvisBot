@@ -89,8 +89,9 @@ def start(update, context):
 
     # set up data about user
     saveInfoToRedis(str(update.message.from_user.id), str(update.message.chat_id), "username", str(update.message.from_user.username))
-    update.message.reply_text("پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
-            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+    options = getLangOpt()
+    update.message.reply_text(getLang(), reply_markup=ReplyKeyboardMarkup(
+            options, one_time_keyboard=True, input_field_placeholder='lang-set'
         ))
     return LANG
 
@@ -112,8 +113,8 @@ def setLang(update, context):
         start_message = start_message_LAELAHAELALAH
         nextStep = "Hala baraye inke shuru konim, shomare daneshjuEt ro vared kon."
     else:
-        update.message.reply_text("من که نفهمیدم، بالاخره چی شد؟ پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
-            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        update.message.reply_text(idGetIt(), reply_markup=ReplyKeyboardMarkup(
+            getLangOpt(), one_time_keyboard=True, input_field_placeholder='lang-set'
         ))
         return LANG
     #TODO in bayad bere baraye vurudia faghat
@@ -128,20 +129,15 @@ def setID(update, context):
 
     logger.info("studentID of %s: %s", user.first_name, update.message.text)
 
-
     lang = getStyle(update.message.from_user.id)
-    getName = ''
     if lang == None:
-        update.message.reply_text("من که نفهمیدم، بالاخره چی شد؟ پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
-            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        update.message.reply_text(idGetIt(), reply_markup = ReplyKeyboardMarkup(
+            getLangOpt(), one_time_keyboard=True, input_field_placeholder='lang-set'
         ))
         return LANG
-    elif lang == FA:
-        getName = "لطفا اسم و فامیلیت رو وارد کن"
-    elif lang == LAELAHAELALAH:
-        getName = "Lotfan esm va familit ro vared kon"
-
-    update.message.reply_text(getName)
+        
+    getName_ = getName(update.message.from_user.id)
+    update.message.reply_text(getName_)
     return GET_NAME
     
     
@@ -149,8 +145,8 @@ def incorrectID(update, context):
     lang = getStyle(update.message.from_user.id)
     correctInput = ''
     if lang == None:
-        update.message.reply_text("من که نفهمیدم، بالاخره چی شد؟ پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
-            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        update.message.reply_text(idGetIt(), reply_markup=ReplyKeyboardMarkup(
+            getLangOpt(), one_time_keyboard=True, input_field_placeholder='lang-set'
         ))
         return LANG
     elif lang == FA:
@@ -171,8 +167,8 @@ def nameSet(update, context):
     validation = ''
     reply_keyboard = [['talash dobare?', 'hamine agha, berim']]
     if lang == None:
-        update.message.reply_text("من که نفهمیدم، بالاخره چی شد؟ پیامام چجوری باشه؟", reply_markup=ReplyKeyboardMarkup(
-            [['Finglish', 'فارسی را پاس بداریم']], one_time_keyboard=True, input_field_placeholder='lang-set'
+        update.message.reply_text(idGetIt(), reply_markup=ReplyKeyboardMarkup(
+            getLangOpt(), one_time_keyboard=True, input_field_placeholder='lang-set'
         ))
         return LANG
     elif lang == FA:
@@ -207,71 +203,114 @@ def studentState(userId):
 
 
 def nameValidation(update, context):
+    global ADMIN_CHAT_ID
     validation = update.message.text
-    studentState_ = studentState(update.message.from_user.id)
+    userId =update.message.from_user.id
+    studentState_ = studentState(userId)
+
     if studentState_ == IDK:
-        start_ = start()
+        start_ = start(update, context)
         return start_
     elif studentState_ == FRESHMAN:
-        if validation == 'talash dobare?':
-            getName = "pas Lotfan esm va familit ro vared kon"
+        if validation == 'talash dobare?' or validation == 'تلاش دوباره?' :
+            getName = getNameAgain(userId)
             update.message.reply_text(getName, reply_markup=ReplyKeyboardRemove())
             return GET_NAME
-        elif validation == 'hamine agha, berim':
+        elif validation == 'hamine agha, berim' or validation == "درست":
 
             ########################### NOTIFY ADMIN ###########################
-            global ADMIN_CHAT_ID
             notifyAdmin(ADMIN_CHAT_ID, r, context)
             ############################### DONE ###############################
             
-            serviceIntro = """ service hayi ke mn erae midam inas. Age barat jaleb bud, yekishun ro entekhab kon ta darbarash behet begam :)"""
-            services = [['Yatim paziri'],['Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+            serviceIntro = getServiceIntro(userId)
+            services = getServiceOptions(userId)
             update.message.reply_animation("CgACAgQAAxkBAAEM6fthTEDkB3_D6pNLofIygH7TfqD-jwACqAwAAmxWYVJY0KkLyzDA5CEE", #loading gif
              caption = serviceIntro, reply_markup = ReplyKeyboardMarkup(services))
             
             return GET_SERVICE
         else:
-            update.message.reply_text("emmm, yeki az gozine haro lotfan entekhab kon")
+            update.message.reply_text(getChoseOneOption(userId))
             return NAME_VALIDATION
     elif studentState_ == SOPHOMORE:
-        options = getOptions
-        # stork = open("gifs/stork_baby.gif", 'rb')
-        update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
-        grandChildText = getGrandChildText()
-        update.message.reply_text("bah bah, umadi bache tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
-            options, one_time_keyboard=True, input_field_placeholder='lst service'
-        ))
-        return GET_CHILD
+        if validation == 'talash dobare?' or validation == 'تلاش دوباره?' :
+            getName = getNameAgain(userId)
+            update.message.reply_text(getName, reply_markup=ReplyKeyboardRemove())
+            return GET_NAME
+        elif validation == 'hamine agha, berim' or validation == "درست":
+
+            ########################### NOTIFY ADMIN ###########################
+            notifyAdmin(ADMIN_CHAT_ID, r, context)
+            ############################### DONE ###############################
+            
+            # stork = open("gifs/stork_baby.gif", 'rb')
+            update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
+            options = getOptions(userId)
+            update.message.reply_text(getChildText(userId), reply_markup = ReplyKeyboardMarkup(
+                options, one_time_keyboard=True, input_field_placeholder='lst child'
+            ))
+            return GET_CHILD
+        else:
+            update.message.reply_text(getNameAgain(userId) , reply_markup=ReplyKeyboardRemove())
+            return GET_NAME
     elif studentState_ == JUNIOR  :
-        # stork = open("gifs/stork_baby.gif", 'rb')
-        update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
-        options = [['Re, lets go!', 'Nop']]
-        update.message.reply_text("bah bah, umadi nave tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
-            options, one_time_keyboard=True, input_field_placeholder='lst child'
-        ))
-        return GET_CHILD_NOT_PARENT
+        if validation == 'talash dobare?' or validation == 'تلاش دوباره?' :
+            getName = getNameAgain(userId)
+            update.message.reply_text(getName, reply_markup=ReplyKeyboardRemove())
+            return GET_NAME
+        elif validation == 'hamine agha, berim' or validation == "درست":
+
+            ########################### NOTIFY ADMIN ###########################
+            notifyAdmin(ADMIN_CHAT_ID, r, context)
+            ############################### DONE ###############################
+            
+            # stork = open("gifs/stork_baby.gif", 'rb')
+            update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
+            options = getOptions(userId)
+            update.message.reply_text(getGrandChildText(userId), reply_markup = ReplyKeyboardMarkup(
+                options, one_time_keyboard=True, input_field_placeholder='lst child'
+            ))
+            return GET_CHILD_NOT_PARENT
+        else:
+            update.message.reply_text(getNameAgain(userId) , reply_markup=ReplyKeyboardRemove())
+            return GET_NAME
     elif studentState_ == SENIOR  :
-        # stork = open("gifs/stork_baby.gif", 'rb')
-        update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
-        options = [['Re, lets go!', 'Nop']]
-        update.message.reply_text("bah bah, umadi nabire tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
-            options, one_time_keyboard=True, input_field_placeholder='lst child'
-        ))
-        return GET_CHILD_NOT_PARENT
+
+        if validation == 'talash dobare?' or validation == 'تلاش دوباره?' :
+            getName = getNameAgain(userId)
+            update.message.reply_text(getName, reply_markup=ReplyKeyboardRemove())
+            return GET_NAME
+        elif validation == 'hamine agha, berim' or validation == "درست":
+
+            ########################### NOTIFY ADMIN ###########################
+            notifyAdmin(ADMIN_CHAT_ID, r, context)
+            ############################### DONE ###############################
+            
+            # stork = open("gifs/stork_baby.gif", 'rb')
+            update.message.reply_animation("CgACAgQAAxkBAAEM6kFhTEVeaezEOF7Z1J7v3yagXy5hGAACagoAAmxWaVJBWswaHL8d0iEE")
+            options = getOptions(userId)
+            update.message.reply_text(getGrandGrandChild(userId), reply_markup = ReplyKeyboardMarkup(
+                options, one_time_keyboard=True, input_field_placeholder='lst child'
+            ))
+            return GET_CHILD_NOT_PARENT
+        else:
+            update.message.reply_text(getNameAgain(userId) , reply_markup=ReplyKeyboardRemove())
+            return GET_NAME
+
 
 
 def getChildNotParent(update, context):
     child = update.message.text
-    if child =='Re, lets go!':
+    userId = update.message.from_user.id
+    if child =='Re, lets go!' or child == "بله":
         saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "WantsChild", True)
-        update.message.reply_text("hale, behesh khabar midim age madar pedar nadasht biad pish to", reply_markup = ReplyKeyboardRemove())
-    elif child == 'Nop':
+        update.message.reply_text(getNotificationForNotParent(userId), reply_markup = ReplyKeyboardRemove())
+    elif child == 'Nop' or child == "خیر":
         saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "WantsChild", True)
-        update.message.reply_text("ishala ke bachat masuliat pazire", reply_markup = ReplyKeyboardRemove())
+        update.message.reply_text(getHopeResponsibleChild(userId), reply_markup = ReplyKeyboardRemove())
     else:
-        update.message.reply_text("durugh chera nafahmidam chi gofT, dobare vared kon", reply_markup = ReplyKeyboardRemove())
-        options = [['Re, lets go!', 'Nop']]
-        update.message.reply_text("bah bah, umadi nabire tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
+        update.message.reply_text(getDidNotUnderstand(userId), reply_markup = ReplyKeyboardRemove())
+        options = getOptions(userId)
+        update.message.reply_text(getWhyHere(userId), reply_markup = ReplyKeyboardMarkup(
             options, one_time_keyboard=True, input_field_placeholder='lst child'
         ))
         return GET_CHILD_NOT_PARENT
@@ -280,104 +319,114 @@ def getChildNotParent(update, context):
 
 def getChild(update, context):
     child = update.message.text
-    if child =='Re, lets go!':
+    userId = update.message.from_user.id
+    if child =='Re, lets go!' or child == "بله":
         saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "WantsChild", True)
-        update.message.reply_text("hale, behesh khabar midim ke biad dar aghush khanevade", reply_markup = ReplyKeyboardRemove())
-    elif child == 'Nop':
+        update.message.reply_text(getNotifyMyChild(userId), reply_markup = ReplyKeyboardRemove())
+    elif child == 'Nop' or child == "خیر":
         saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "WantsChild", True)
-        update.message.reply_text("hale, behesh khabar midim bere ye sarparast peida kone", reply_markup = ReplyKeyboardRemove())
+        update.message.reply_text(getNotifUnwantedChild(userId), reply_markup = ReplyKeyboardRemove())
     else:
-        update.message.reply_text("durugh chera nafahmidam chi gofT, dobare vared kon", reply_markup = ReplyKeyboardRemove())
-        options = [['Re, lets go!', 'Nop']]
-        update.message.reply_text("bah bah, umadi bache tahvil begiri?", reply_markup = ReplyKeyboardMarkup(
+        update.message.reply_text(getDidNotUnderstand(userId), reply_markup = ReplyKeyboardRemove())
+        options = getOptions(userId)
+        update.message.reply_text( getChildText(userId), reply_markup = ReplyKeyboardMarkup(
             options, one_time_keyboard=True, input_field_placeholder='lst service'
         ))
         return GET_CHILD
     return HALE
 
 def hale(update, context):
-    update.message.reply_text("hale dige, hamahagi haye lazem ro mikonam va age khabari bud behet midam")
+    userId = update.message.from_user.id
+    update.message.reply_text(getWillOrganize(userId))
     return None
 
 def setService(update, context):
     service = update.message.text
-    if service == 'Yatim paziri':
-        global parenthood_message
+    userId = update.message.from_user.id
+    if service == 'Parent yabi' or service=='پیدا کردن پدر و مادر':
+        parenthood_message = getParenthood_message(userId)
         update.message.reply_text(parenthood_message, reply_markup=ReplyKeyboardRemove())
-        options = [['❇sarparast mikham❇', 'Nah!']]
-        update.message.reply_text("khob hala begu bebinam mikhai sarparast dashte bashi? ", reply_markup = ReplyKeyboardMarkup(
+        options = getParentOption(userId)
+        update.message.reply_text(getWillToHaveParent(userId), reply_markup = ReplyKeyboardMarkup(
             options, one_time_keyboard=True, input_field_placeholder='lst service'
         ))
         return WAIT_PARENTHOOD
-    elif service == 'Tashakol haye AUT va CE':
-        global tashakolat_message
-        services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+    elif service == 'Tashakol haye AUT va CE' or service =="تشکل های دانشگاه و دانشکده":
+        tashakolat_message = getTashakolatMessage(userId)
+        services = getServiceOptions(userId)
         update.message.reply_animation("CgACAgQAAxkBAAEM6glhTEGXueA6zdL910ZLEO7tAlxtUAACpgwAAmxWYVJp-BJS4aRtjyEE", #gp.gif
          caption=tashakolat_message, reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of services'
         ))
         return GET_SERVICE
-    elif service == 'site haye AUT va CE':
-        global sites_message
-        services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+    elif service == 'site haye AUT va CE' or service == 'سایت های دانشگاه و دانشکده':
+        sites_message = getSitesMessage(userId)
+        services = getServiceOptions(userId)
         update.message.reply_animation("CgACAgQAAxkBAAEM6g1hTEHTW1IEYRvheVszhp3Eyy_3IwACrAwAAmxWYVJH4AtOkexidyEE", caption=sites_message, reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of services'
         ))
         return GET_SERVICE
 
     else: 
-        services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
-        update.message.reply_text("Emmm... nadashtim hamchin serviceE ha🤔🤔, yebar dige entekhab kon", reply_markup = ReplyKeyboardMarkup(
+        services = getServiceOptions(userId)
+        update.message.reply_text(weDontHaveThatHereStopDoingCrack(userId), reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of service'
         ))
         return GET_SERVICE
 
 def getParenthoodService(update, context):
+    userId = update.message.from_user.id
     parenthood = update.message.text
-    if parenthood=="❇sarparast mikham❇":
-        
+    if parenthood=="❇sarparast mikham❇" or parenthood=='❇سرپرست میخوام❇':
         #save in redis db
         saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "parentHood", True)
 
-        update.message.reply_text("hale, be {} khabar midam ke biad be sarparasti ghabulet kone".format("STUDENT_ID_PARENT"), reply_markup=ReplyKeyboardRemove())
-        nextService = "Dige che serviceE mikhai?"
-        services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+        studentId = loadInfoFromRedis(update.message.from_user.id)
+        studentId = studentId["studentID"]
+        update.message.reply_text(getNotifyMyParent(userId==userId, studentId=studentId), reply_markup=ReplyKeyboardRemove())
+        
+        nextService = getAnyOtherService(userId)
+        services = getServiceOptions(userId)
         update.message.reply_text(nextService, reply_markup = ReplyKeyboardMarkup(
                 services, one_time_keyboard=True, input_field_placeholder='list of service'
             ))
         return GET_SERVICE
-    elif parenthood == "Nah!":
+    elif parenthood == "Nah!" or parenthood =='نه':
         
         #save in redis db
         saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "parentHood", False)
 
-        update.message.reply_text("eh chera? \nKhob ok harjur rahat tari, be {} khabar midam ke donbal ye bache dige bashe".format("STUDENT_ID_PARENT"), reply_markup=ReplyKeyboardRemove())
-        nextService = "Dige che serviceE mikhai?"
-        services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+        update.message.reply_text(dontWantParent(userId), reply_markup=ReplyKeyboardRemove())
+        nextService = getAnyOtherService(userId)
+        services = getServiceOptions(userId)
         update.message.reply_text(nextService, reply_markup = ReplyKeyboardMarkup(
                 services, one_time_keyboard=True, input_field_placeholder='list of service'
             ))
         return GET_SERVICE
     else:
-        update.message.reply_text("agha mn ke nafahmidam chi migi, az gozine ha yekio entekhab kon ya /skip bezan")
+        update.message.reply_text(getIdkWaitingParenthood(userId))
         return WAIT_PARENTHOOD
 
 def noSkipGetId(update, context):
-    update.message.reply_text("laelahaelalah, sare karie? ")
+    userId = update.message.from_user.id
+    update.message.reply_text(getLaelahaelalah(userId))
     return GET_ID
 
 def noSkipGetName(update, context):
-    update.message.reply_text("mage mishe mn esmet ro nadunam? noch noch, nemishe")
+    userId = update.message.from_user.id
+    update.message.reply_text(getCantBe(userId))
     return GET_NAME
 
 def noSkipNameValidation(update, context):
-    update.message.reply_text("laelahaelalah, agha ya esmet hast ya nist, in koli bazia dige chie?")
+    userId = update.message.from_user.id
+    update.message.reply_text(getKoliBazi(userId=userId))
     return NAME_VALIDATION
 
 def skipParenthood(update, context):
-    update.message.reply_text("inghadr madar pedaret ro hers nade", reply_markup=ReplyKeyboardRemove())
-    serviceIntro = """ hala service digeE mikhai?"""
-    services = [['Yatim paziri'],[ 'Tashakol haye AUT va CE', 'site haye AUT va CE' ]]
+    userId = update.message.from_user.id
+    update.message.reply_text(getBadChild(userId), reply_markup=ReplyKeyboardRemove())
+    serviceIntro = getAnotherService(userId)
+    services = getServiceOptions(userId)
     update.message.reply_text(serviceIntro, reply_markup = ReplyKeyboardMarkup(
             services, one_time_keyboard=True, input_field_placeholder='list of service'
         ))
@@ -388,21 +437,28 @@ def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 def cancel(update, context):
-    update.message.reply_text("laelahaelalah, berim az aval pas", reply_markup=ReplyKeyboardRemove())
-    update.message.reply_text("dobare shomare daneshjuEt ro vared kon.")
+    userId = update.message.from_user.id
+    update.message.reply_text(getCanceledMidway(userId), reply_markup=ReplyKeyboardRemove())
     return GET_ID
 
 def idk_ServiceList(update, context):
-    update.message.reply_text("chio mikhai skip koni khodaE alan?", reply_markup=ReplyKeyboardRemove())
+    userId = update.message.from_user.id
+    update.message.reply_text(getIdkMan(userId), reply_markup=ReplyKeyboardRemove())
     return None
 
 def idk_command(update, context):
-    update.message.reply_text("Emmm, hamchin commandE nadashtam ha!")
+    userId = update.message.from_user.id
+    update.message.reply_text(getStudentDoingCrack(userId))
     return None
 
 def skipService(update, context):
-    update.message.reply_text("Chera inghadr ajale darE? alan mikhai koja beri? inja tahe khate...")
+    userId = update.message.from_user.id
+    update.message.reply_text(getNoSkip(userId))
     return None
+
+def cannotCancel(update, context):
+    userId = update.message.from_user.id
+    update.message.reply_text(getDoNotcancel(userId))
 
 
 def main():
@@ -415,17 +471,28 @@ def main():
         entry_points=[CommandHandler('start', start)],
         states={
             LANG: [MessageHandler( Filters.text & ~Filters.command , setLang)],
-            GET_ID: [MessageHandler(Filters.regex('^40031.{3}'), setID), MessageHandler(Filters.regex('^9931.{3}'), setID), MessageHandler(Filters.regex('^9831.{3}'), setID) , MessageHandler(Filters.regex('^9731.{3}'), setID), CommandHandler('skip', noSkipGetId), MessageHandler(Filters.text & ~Filters.command, incorrectID),  CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
-            GET_NAME: [MessageHandler(Filters.text & ~Filters.command, nameSet), CommandHandler('skip', noSkipGetName), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
+
+            GET_ID: [MessageHandler(Filters.regex('^40031.{3}'), setID), MessageHandler(Filters.regex('^9931.{3}'), setID), MessageHandler(Filters.regex('^9831.{3}'), setID) ,
+            MessageHandler(Filters.regex('^9731.{3}'), setID), CommandHandler('skip', noSkipGetId) , MessageHandler(Filters.text & ~Filters.command, incorrectID),
+            CommandHandler("start", start), CommandHandler("cancel", cannotCancel), MessageHandler(Filters.command, idk_command)],
+            
+            GET_NAME: [MessageHandler(Filters.text & ~Filters.command, nameSet), CommandHandler('skip', noSkipGetName), CommandHandler("start", start), CommandHandler("cancel", cannotCancel), MessageHandler(Filters.command, idk_command)],
+            
             NAME_VALIDATION: [
-                MessageHandler(Filters.text & ~Filters.command, nameValidation ), CommandHandler('skip', noSkipNameValidation), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)
+                MessageHandler(Filters.text & ~Filters.command, nameValidation ), CommandHandler('skip', noSkipNameValidation), CommandHandler("start", start), CommandHandler("cancel", cannotCancel), MessageHandler(Filters.command, idk_command)
             ],
+            
             GET_SERVICE:[MessageHandler(Filters.text & ~Filters.command, setService),  CommandHandler("skip", skipService), CommandHandler("start", start), MessageHandler(Filters.command, idk_command) ],
+            
             WAIT_PARENTHOOD:[ MessageHandler( Filters.text & ~Filters.command, getParenthoodService) , CommandHandler('skip', skipParenthood), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
+            
             GOD: [CommandHandler("data", admin), MessageHandler(Filters.regex('^40031.{3}'), getData),MessageHandler(Filters.regex('^9931.{3}'), getData), MessageHandler(Filters.regex('^9831.{3}'), getData),MessageHandler(Filters.regex('^9731.{3}'), getData), MessageHandler(Filters.all, imDumb)],
+            
             GET_CHILD: [ MessageHandler( Filters.text & ~Filters.command, getChild), CommandHandler("start", start)],
+            
             HALE:[MessageHandler(Filters.all & ~Filters.command, hale), CommandHandler("start", start)],
-            GET_CHILD_NOT_PARENT:[MessageHandler(Filters.all & ~Filters.command, getChildNotParent), CommandHandler("start", start)]
+            
+            GET_CHILD_NOT_PARENT:[MessageHandler(Filters.all & ~Filters.command, getChildNotParent), CommandHandler("start", start), CommandHandler("skip", skipService)]
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )
