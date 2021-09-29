@@ -17,7 +17,7 @@ today = date.today()
 # dd/mm/YY
 d1 = today.strftime("%d-%m-%Y")
 
-with open('data'+str(d1)+".csv", mode='w',  encoding='utf16') as dataFile:
+with open('savedData/data'+str(d1)+".csv", mode='w',  encoding='utf16') as dataFile:
     dataFile = csv.writer(dataFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
     dataFile.writerow(['userId', 'chatId', 'username', 'studentID' , 'fullName', 'WantsChild' , 'parentHood' , 'lang'])
