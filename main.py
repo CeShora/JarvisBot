@@ -95,10 +95,8 @@ def start(update, context):
         ))
     return LANG
 
-
 def setLang(update, context):
     lang = update.message.text
-    
     start_message = '' 
     nextStep = ''
 
@@ -139,8 +137,7 @@ def setID(update, context):
     getName_ = getName(update.message.from_user.id)
     update.message.reply_text(getName_)
     return GET_NAME
-    
-    
+
 def incorrectID(update, context):
     lang = getStyle(update.message.from_user.id)
     correctInput = ''
@@ -380,11 +377,9 @@ def getParenthoodService(update, context):
     if parenthood=="❇sarparast mikham❇" or parenthood=='❇سرپرست میخوام❇':
         #save in redis db
         saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "parentHood", True)
-
         studentId = loadInfoFromRedis(update.message.from_user.id)
         studentId = studentId["studentID"]
-        update.message.reply_text(getNotifyMyParent(userId==userId, studentId=studentId), reply_markup=ReplyKeyboardRemove())
-        
+        update.message.reply_text(getNotifyMyParent(userId=userId, studentId=studentId), reply_markup=ReplyKeyboardRemove())
         nextService = getAnyOtherService(userId)
         services = getServiceOptions(userId)
         update.message.reply_text(nextService, reply_markup = ReplyKeyboardMarkup(
@@ -396,7 +391,10 @@ def getParenthoodService(update, context):
         #save in redis db
         saveInfoToRedis(update.message.from_user.id, update.message.chat_id, "parentHood", False)
 
-        update.message.reply_text(dontWantParent(userId), reply_markup=ReplyKeyboardRemove())
+        studentId = loadInfoFromRedis(update.message.from_user.id)
+        studentId = studentId["studentID"]
+
+        update.message.reply_text(dontWantParent(userId, studentId), reply_markup=ReplyKeyboardRemove())
         nextService = getAnyOtherService(userId)
         services = getServiceOptions(userId)
         update.message.reply_text(nextService, reply_markup = ReplyKeyboardMarkup(
@@ -484,7 +482,7 @@ def main():
             
             GET_SERVICE:[MessageHandler(Filters.text & ~Filters.command, setService),  CommandHandler("skip", skipService), CommandHandler("start", start), MessageHandler(Filters.command, idk_command) ],
             
-            WAIT_PARENTHOOD:[ MessageHandler( Filters.text & ~Filters.command, getParenthoodService) , CommandHandler('skip', skipParenthood), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
+            WAIT_PARENTHOOD:[ MessageHandler( Filters.text & ~Filters.command, getParenthoodService) , CommandHandler('skip', skipParenthood), CommandHandler('cancel', skipParenthood), CommandHandler("start", start), MessageHandler(Filters.command, idk_command)],
             
             GOD: [CommandHandler("data", admin), MessageHandler(Filters.regex('^40031.{3}'), getData),MessageHandler(Filters.regex('^9931.{3}'), getData), MessageHandler(Filters.regex('^9831.{3}'), getData),MessageHandler(Filters.regex('^9731.{3}'), getData), MessageHandler(Filters.all, imDumb)],
             
