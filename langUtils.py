@@ -334,3 +334,7 @@ def getCanceledMidway(userId):
         return message
     elif getStyle(userId)==LAELAHAELALAH:
         return message
+
+def getNotAuth(userId):
+    return "moteasefane shomare daneshjuE shoma tuye database vujud nadarad lotfan be @NeginKheirmand ya @CEshora_admin khabar bede "
+    
