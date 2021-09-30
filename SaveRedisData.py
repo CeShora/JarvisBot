@@ -7,9 +7,11 @@ import json
 r = redis.StrictRedis(host='localhost', port=6379, db=0)
 allData = []
 for key in r.keys():
-    # print(key, r.get(key))
+    if key == b'StudentId_Username_CollectedData':
+        continue
     data = json.loads(r.get(key))
     allData.append(data)
+# print(allData)
 
 # print(allData)
 # print()
