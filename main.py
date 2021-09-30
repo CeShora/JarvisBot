@@ -29,7 +29,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-LANG,  GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD, GET_CHILD, GET_CHILD_NOT_PARENT, HALE= range(10)
+LANG,  GET_ID, GET_NAME, NAME_VALIDATION, GET_SERVICE, WAIT_PARENTHOOD, GOD, GET_CHILD, GET_CHILD_NOT_PARENT, HALE, NOT_AUTH= range(11)
 
 
 FRESHMAN, SOPHOMORE, JUNIOR, SENIOR, IDK = range(5)
@@ -88,7 +88,8 @@ def start(update, context):
         return GOD
 
     if not isAuth():
-        update.message.reply_text("Hi admin👋", reply_markup=ReplyKeyboardRemove())
+        update.message.reply_text(getNotAuth(), reply_markup=ReplyKeyboardRemove())
+        return NOT_AUTH
 
     # set up data about user
     user = update.message.from_user.username
@@ -462,6 +463,9 @@ def cannotCancel(update, context):
     userId = update.message.from_user.id
     update.message.reply_text(getDoNotcancel(userId))
 
+def notAuth(update, context):
+    update.message.reply_text(getNotAuth(), reply_markup=ReplyKeyboardRemove())
+
 
 def main():
     global API_KEY
@@ -494,7 +498,8 @@ def main():
             
             HALE:[MessageHandler(Filters.all & ~Filters.command, hale), CommandHandler("start", start)],
             
-            GET_CHILD_NOT_PARENT:[MessageHandler(Filters.all & ~Filters.command, getChildNotParent), CommandHandler("start", start), CommandHandler("skip", skipService)]
+            GET_CHILD_NOT_PARENT:[MessageHandler(Filters.all & ~Filters.command, getChildNotParent), CommandHandler("start", start), CommandHandler("skip", skipService)],
+            NOT_AUTH : [MessageHandler(Filters.all, notAuth)]
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )
