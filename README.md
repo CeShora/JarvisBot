@@ -39,5 +39,10 @@ bot features/services:
 
 
 
+steps:
+save the redis data collected until now: python SaveRedisData.py
+<!-- empty the redis data -> may now be required: python emptyRedis.py -->
+load from csv to redis : python loadFromCsvToRedis.py
+run the bot:  pipenv run python .\main.py
 
 
