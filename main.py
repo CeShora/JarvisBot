@@ -87,8 +87,12 @@ def start(update, context):
         logger.info("admin is talking to me :)")
         return GOD
 
+    if not isAuth():
+        update.message.reply_text("Hi admin👋", reply_markup=ReplyKeyboardRemove())
+
     # set up data about user
-    saveInfoToRedis(str(update.message.from_user.id), str(update.message.chat_id), "username", str(update.message.from_user.username))
+    user = update.message.from_user.username
+    saveInfoToRedis(str(update.message.from_user.id), str(update.message.chat_id), "username", str(user['username']))
     options = getLangOpt()
     update.message.reply_text(getLang(), reply_markup=ReplyKeyboardMarkup(
             options, one_time_keyboard=True, input_field_placeholder='lang-set'
